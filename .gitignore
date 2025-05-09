@@ -3,7 +3,7 @@ frontend/node_modules/
 frontend/build/
 
 # Python (для бэкенда)
-backend/__pycache__/
+__pycache__
 
 # Общие файлы
 *.log
