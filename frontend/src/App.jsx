@@ -8,11 +8,12 @@ function App() {
   const [message, setMessage] = useState('Loading...')
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/hello') // эндпоинт FastAPI
+    const url = `${import.meta.env.VITE_API_BASE_URL}/api/hello`;  // Используйте обратные кавычки для интерполяции
+    fetch(url) // эндпоинт FastAPI
       .then((res) => res.json())
       .then((data) => setMessage(data.message))
       .catch((err) => setMessage("Ошибка при получении данных"));
-  }, [])
+  }, []);
 
   return (
     <>
