@@ -1,370 +1,240 @@
-import { useEffect, useRef, useState } from 'react';
-
-const WS_URL = 'ws://localhost:8000/ws';
+import { useRef, useState, useEffect, useCallback } from "react";
+import Toolbar from "./Toolbar";
 
 export default function Canvas() {
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
-  const drawing = useRef(false);
-  const socketRef = useRef(null);
-  const lastPoint = useRef(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [socketStatus, setSocketStatus] = useState('Disconnected');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [tool, setTool] = useState('brush');
-  const [color, setColor] = useState('#000000');
+
+  const [tool, setTool] = useState("brush");
+  const [color, setColor] = useState("#000000");
   const [lineWidth, setLineWidth] = useState(2);
+
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [isPanning, setIsPanning] = useState(false);
+  const [lastMousePos, setLastMousePos] = useState(null);
 
-  // Инициализация Canvas
+  const [drawing, setDrawing] = useState(false);
+  const [currentStroke, setCurrentStroke] = useState([]);
+  const [strokes, setStrokes] = useState([]);
+
+  // Новый флаг: зажат ли пробел
+  const [spacePressed, setSpacePressed] = useState(false);
+
+  // Глобальные слушатели для пробела
   useEffect(() => {
-    const canvas = canvasRef.current;
-    canvas.width = window.innerWidth * 2;
-    canvas.height = window.innerHeight * 2;
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.scale(2, 2); // Для ретина-дисплеев
-    ctxRef.current = ctx;
-
-    // Загрузка текущего состояния холста
-    fetch('http://localhost:8000/sync')
-      .then(res => res.json())
-      .then(strokes => {
-        strokes.forEach(stroke => {
-          drawStroke(stroke.points, stroke.color, stroke.lineWidth);
-        });
-      })
-      .catch(err => {
-        console.error('Failed to load canvas state:', err);
-        setErrorMessage('Failed to load canvas state');
-      });
-
+    const downHandler = (e) => {
+      if (e.code === "Space") setSpacePressed(true);
+    };
+    const upHandler = (e) => {
+      if (e.code === "Space") setSpacePressed(false);
+    };
+    window.addEventListener("keydown", downHandler);
+    window.addEventListener("keyup", upHandler);
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
-      }
+      window.removeEventListener("keydown", downHandler);
+      window.removeEventListener("keyup", upHandler);
     };
   }, []);
 
-  // Настройка WebSocket
+  // Преобразование экранных координат в мировые
+  const screenToWorld = (x, y) => ({
+    x: (x - offset.x) / scale,
+    y: (y - offset.y) / scale,
+  });
+
+  // Преобразование мировых координат в экранные
+  const worldToScreen = (x, y) => ({
+    x: x * scale + offset.x,
+    y: y * scale + offset.y,
+  });
+
   useEffect(() => {
-    if (!token) {
-      setSocketStatus('Missing token');
-      return;
-    }
-
-    try {
-      socketRef.current = new WebSocket(WS_URL);
-      
-      // Добавляем токен в заголовки
-      socketRef.current.onopen = () => {
-        setIsConnected(true);
-        setSocketStatus('Connected');
-        console.log('✅ WebSocket connected');
-        
-        // Отправляем текущие настройки
-        sendSettings();
-      };
-
-      socketRef.current.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          if (data.type === 'stroke') {
-            drawStroke(data.points, data.color, data.lineWidth, false);
-          } else if (data.type === 'settings') {
-            applySettings(data.settings);
-          } else if (data.type === 'clear') {
-            clearCanvas();
-          }
-        } catch (error) {
-          console.error('❌ Error parsing message:', error);
-          setErrorMessage('Error parsing message');
-        }
-      };
-
-      socketRef.current.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-        setSocketStatus('Error');
-        setErrorMessage(`WebSocket error: ${error.message}`);
-      };
-
-      socketRef.current.onclose = (event) => {
-        setIsConnected(false);
-        setSocketStatus('Disconnected');
-        console.log('🔌 WebSocket closed', event.reason);
-        
-        // Автоматическое восстановление соединения
-        setTimeout(() => {
-          setSocketStatus('Reconnecting...');
-          // Повторная попытка подключения
-          if (token) {
-            socketRef.current = new WebSocket(WS_URL);
-          }
-        }, 5000);
-      };
-
-    } catch (error) {
-      console.error('WebSocket initialization error:', error);
-      setErrorMessage('Failed to initialize WebSocket');
-    }
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
-      }
-    };
-  }, [token]);
-
-  // Обновление токена
-  useEffect(() => {
-    localStorage.setItem('token', token);
-  }, [token]);
-
-  const sendSettings = () => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
-    
-    const settings = {
-      tool,
-      color,
-      lineWidth,
-      scale,
-      offset
-    };
-    
-    socketRef.current.send(JSON.stringify({
-      type: 'settings',
-      settings
-    }));
-  };
-
-  const applySettings = (settings) => {
-    if (settings.tool) setTool(settings.tool);
-    if (settings.color) setColor(settings.color);
-    if (settings.lineWidth) setLineWidth(settings.lineWidth);
-    if (settings.scale) setScale(settings.scale);
-    if (settings.offset) setOffset(settings.offset);
-  };
-
-  const drawStroke = (points, strokeColor = color, strokeWidth = lineWidth, emit = true) => {
-    if (!ctxRef.current || points.length < 2) return;
-    
-    ctxRef.current.strokeStyle = strokeColor;
-    ctxRef.current.lineWidth = strokeWidth;
-    
-    ctxRef.current.beginPath();
-    ctxRef.current.moveTo(points[0].x, points[0].y);
-    
-    for (let i = 1; i < points.length; i++) {
-      ctxRef.current.lineTo(points[i].x, points[i].y);
-    }
-    
-    ctxRef.current.stroke();
-    
-    if (emit && isConnected) {
-      socketRef.current.send(JSON.stringify({
-        type: 'stroke',
-        points,
-        color: strokeColor,
-        lineWidth: strokeWidth
-      }));
-    }
-  };
-
-  const clearCanvas = () => {
     const canvas = canvasRef.current;
+    canvas.width = window.innerWidth - 10;
+    canvas.height = window.innerHeight - 10;
+    ctxRef.current = canvas.getContext("2d");
+    redrawAll();
+    // eslint-disable-next-line
+  }, [scale, offset, strokes]);
+
+  const redrawAll = () => {
     const ctx = ctxRef.current;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    if (isConnected) {
-      socketRef.current.send(JSON.stringify({
-        type: 'clear'
-      }));
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    for (const stroke of strokes) {
+      if (stroke.points.length < 2) continue;
+      ctx.strokeStyle = stroke.tool === "eraser" ? "#fff" : stroke.color;
+      ctx.lineWidth = stroke.lineWidth * scale;
+      ctx.beginPath();
+      let start = worldToScreen(stroke.points[0].x, stroke.points[0].y);
+      ctx.moveTo(start.x, start.y);
+      for (let i = 1; i < stroke.points.length; i++) {
+        let p = worldToScreen(stroke.points[i].x, stroke.points[i].y);
+        ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
     }
   };
 
-  const handleMouseDown = (e) => {
-    if (tool === 'move') {
-      setLastMousePos({ x: e.clientX, y: e.clientY });
-      return;
+  useEffect(() => {
+    if (!drawing || currentStroke.length < 2) return;
+    redrawAll();
+    const ctx = ctxRef.current;
+    ctx.strokeStyle = tool === "eraser" ? "#fff" : color;
+    ctx.lineWidth = lineWidth * scale;
+    ctx.beginPath();
+    let start = worldToScreen(currentStroke[0].x, currentStroke[0].y);
+    ctx.moveTo(start.x, start.y);
+    for (let i = 1; i < currentStroke.length; i++) {
+      let p = worldToScreen(currentStroke[i].x, currentStroke[i].y);
+      ctx.lineTo(p.x, p.y);
     }
-    
-    drawing.current = true;
-    const { clientX, clientY } = e;
-    lastPoint.current = { x: clientX, y: clientY };
-  };
+    ctx.stroke();
+    // eslint-disable-next-line
+  }, [currentStroke, drawing, scale, offset]);
 
-  const handleMouseMove = (e) => {
-    if (tool === 'move' && e.buttons === 1) {
-      const dx = e.clientX - lastMousePos.x;
-      const dy = e.clientY - lastMousePos.y;
-      
-      setOffset(prev => ({
-        x: prev.x + dx,
-        y: prev.y + dy
-      }));
-      
-      setLastMousePos({ x: e.clientX, y: e.clientY });
-      return;
-    }
-    
-    if (!drawing.current) return;
-    
-    const { clientX, clientY } = e;
-    
-    if (tool === 'brush' || tool === 'eraser') {
-      const currentPoint = { x: clientX, y: clientY };
-      const points = [lastPoint.current, currentPoint];
-      
-      drawStroke(points, tool === 'eraser' ? '#FFFFFF' : color, lineWidth, true);
-      lastPoint.current = currentPoint;
-    }
-  };
-
-  const handleMouseUp = () => {
-    drawing.current = false;
-  };
-
-  const handleWheel = (e) => {
-    e.preventDefault();
-    
-    const zoomFactor = e.deltaY > 0 ? 0.95 : 1.05;
-    const newScale = Math.max(0.5, Math.min(3, scale * zoomFactor));
-    
-    setScale(newScale);
-    
-    // Центрируем зум относительно курсора
+  const getRelativeMouse = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
-    const dx = (mouseX / scale) * (zoomFactor - 1);
-    const dy = (mouseY / scale) * (zoomFactor - 1);
-    
-    setOffset(prev => ({
-      x: prev.x + dx,
-      y: prev.y + dy
-    }));
+    return { mouseX, mouseY };
   };
 
-  const updateTool = (newTool) => {
-    setTool(newTool);
-    
-    if (isConnected) {
-      socketRef.current.send(JSON.stringify({
-        type: 'settings',
-        settings: { tool: newTool }
-      }));
+  const handleMouseDown = (e) => {
+    // 1. Перемещение: средняя кнопка (e.button === 1) или пробел + ЛКМ
+    if (e.button === 1 || (e.button === 0 && spacePressed)) {
+      setIsPanning(true);
+      setLastMousePos({ x: e.clientX, y: e.clientY });
+      return;
+    }
+    // 2. Рисование
+    if (tool === "brush" || tool === "eraser") {
+      setDrawing(true);
+      const { mouseX, mouseY } = getRelativeMouse(e);
+      const pos = screenToWorld(mouseX, mouseY);
+      setCurrentStroke([{ x: pos.x, y: pos.y }]);
     }
   };
 
-  const updateColor = (newColor) => {
-    setColor(newColor);
-    
-    if (isConnected) {
-      socketRef.current.send(JSON.stringify({
-        type: 'settings',
-        settings: { color: newColor }
-      }));
+  const handleMouseMove = (e) => {
+    if (isPanning) {
+      if (lastMousePos) {
+        const dx = e.clientX - lastMousePos.x;
+        const dy = e.clientY - lastMousePos.y;
+        setOffset((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+        setLastMousePos({ x: e.clientX, y: e.clientY });
+      }
+      return;
+    }
+    if (!drawing) return;
+    const { mouseX, mouseY } = getRelativeMouse(e);
+    const pos = screenToWorld(mouseX, mouseY);
+    setCurrentStroke((prev) => [...prev, { x: pos.x, y: pos.y }]);
+  };
+
+  const handleMouseUp = () => {
+    if (isPanning) {
+      setIsPanning(false);
+      setLastMousePos(null);
+      return;
+    }
+    if (drawing) {
+      setDrawing(false);
+      if (currentStroke.length > 1) {
+        setStrokes((prev) => [
+          ...prev,
+          {
+            points: currentStroke,
+            color,
+            lineWidth,
+            tool,
+          },
+        ]);
+      }
+      setCurrentStroke([]);
     }
   };
 
-  const updateLineWidth = (newWidth) => {
-    setLineWidth(newWidth);
-    
-    if (isConnected) {
-      socketRef.current.send(JSON.stringify({
-        type: 'settings',
-        settings: { lineWidth: newWidth }
-      }));
-    }
-  };
+  // Масштабирование колесиком мыши
+  const handleWheel = useCallback(
+    (e) => {
+      e.preventDefault();
+      const rect = canvasRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const worldPosBefore = screenToWorld(mouseX, mouseY);
 
-  const handleLogin = (newToken) => {
-    setToken(newToken);
-  };
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      const newScale = Math.max(0.2, Math.min(4, scale * zoomFactor));
+      setScale(newScale);
+
+      setOffset((prev) => {
+        const worldPosAfter = {
+          x: worldPosBefore.x * newScale,
+          y: worldPosBefore.y * newScale,
+        };
+        return {
+          x: mouseX - worldPosAfter.x,
+          y: mouseY - worldPosAfter.y,
+        };
+      });
+    },
+    [scale, offset]
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
+    return () => canvas.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
+
+  const clearCanvas = () => setStrokes([]);
 
   return (
-    <div className="canvas-container" style={{ width: '100vw', height: '100vh' }}>
-      {/* Панель инструментов */}
-      <div className="toolbar" style={{
-        position: 'fixed',
-        top: '10px',
-        left: '10px',
-        zIndex: 1000,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        padding: '10px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-          <button onClick={() => updateTool('brush')} style={{ fontWeight: tool === 'brush' ? 'bold' : 'normal' }}>Brush</button>
-          <button onClick={() => updateTool('eraser')} style={{ fontWeight: tool === 'eraser' ? 'bold' : 'normal' }}>Eraser</button>
-          <button onClick={() => updateTool('move')} style={{ fontWeight: tool === 'move' ? 'bold' : 'normal' }}>Move</button>
-          <button onClick={clearCanvas}>Clear</button>
-        </div>
-        
-        {tool !== 'move' && (
-          <>
-            <div style={{ marginBottom: '5px' }}>Color:</div>
-            <input 
-              type="color" 
-              value={color} 
-              onChange={(e) => updateColor(e.target.value)} 
-              style={{ width: '100%', marginBottom: '10px' }}
-            />
-            
-            <div style={{ marginBottom: '5px' }}>Line Width: {lineWidth}</div>
-            <input 
-              type="range" 
-              min="1" 
-              max="20" 
-              value={lineWidth} 
-              onChange={(e) => updateLineWidth(parseInt(e.target.value))} 
-              style={{ width: '100%' }}
-            />
-          </>
-        )}
-      </div>
-      
-      {/* Статус подключения */}
-      <div style={{
-        position: 'fixed',
-        bottom: '10px',
-        left: '10px',
-        zIndex: 1000,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        padding: '10px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-      }}>
-        <p style={{ margin: 0 }}>WebSocket Status: {socketStatus}</p>
-        {errorMessage && <p style={{ color: 'red', margin: 0 }}>Error: {errorMessage}</p>}
-      </div>
-
-      {/* Холст */}
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        position: "relative",
+        background: "#23232e",
+        padding: 5,
+        boxSizing: "border-box",
+      }}
+    >
+      <Toolbar
+        tool={tool}
+        setTool={setTool}
+        color={color}
+        setColor={setColor}
+        lineWidth={lineWidth}
+        setLineWidth={setLineWidth}
+        onClear={clearCanvas}
+      />
       <canvas
         ref={canvasRef}
+        style={{
+          position: "absolute",
+          left: 5,
+          top: 5,
+          width: "calc(100vw - 10px)",
+          height: "calc(100vh - 10px)",
+          display: "block",
+          background: "#fff",
+          zIndex: 1,
+          borderRadius: "0px",
+          cursor:
+            isPanning || spacePressed
+              ? "grab"
+              : tool === "eraser"
+              ? "not-allowed"
+              : "crosshair",
+        }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseOut={handleMouseUp}
-        onWheel={handleWheel}
-        style={{
-          display: 'block',
-          width: '100%',
-          height: '100%',
-          touchAction: 'none',
-          transform: `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`
-        }}
+        onMouseLeave={handleMouseUp}
       />
     </div>
   );
