@@ -1,27 +1,28 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Toolbar from "./Toolbar";
+import Minimap from "./Minimap";
 
-export default function Canvas() {
+export default function Canvas({
+  tool, setTool,
+  color, setColor,
+  lineWidth, setLineWidth,
+  scale, setScale,
+  offset, setOffset,
+  strokes, setStrokes,
+  worldRect, setWorldRect,
+}) {
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
 
-  const [tool, setTool] = useState("brush");
-  const [color, setColor] = useState("#000000");
-  const [lineWidth, setLineWidth] = useState(2);
-
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [lastMousePos, setLastMousePos] = useState(null);
 
   const [drawing, setDrawing] = useState(false);
   const [currentStroke, setCurrentStroke] = useState([]);
-  const [strokes, setStrokes] = useState([]);
 
-  // Новый флаг: зажат ли пробел
   const [spacePressed, setSpacePressed] = useState(false);
 
-  // Глобальные слушатели для пробела
+  // Глобальные слушатели для пробела (перемещение)
   useEffect(() => {
     const downHandler = (e) => {
       if (e.code === "Space") setSpacePressed(true);
@@ -49,6 +50,30 @@ export default function Canvas() {
     y: y * scale + offset.y,
   });
 
+  // --- Авторасширение мира по необходимости ---
+  function expandWorldIfNeeded(points) {
+    let { minX, minY, maxX, maxY } = worldRect;
+    let expanded = false;
+    for (const { x, y } of points) {
+      if (x < minX) { minX = x - 500; expanded = true; }
+      if (x > maxX) { maxX = x + 500; expanded = true; }
+      if (y < minY) { minY = y - 500; expanded = true; }
+      if (y > maxY) { maxY = y + 500; expanded = true; }
+    }
+    if (expanded) setWorldRect({ minX, minY, maxX, maxY });
+  }
+
+  // Поддержка resize окна
+  useEffect(() => {
+    const handleResize = () => {
+      redrawAll();
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+    // eslint-disable-next-line
+  }, [scale, offset, strokes, worldRect]);
+
+  // Инициализация и перерисовка
   useEffect(() => {
     const canvas = canvasRef.current;
     canvas.width = window.innerWidth - 10;
@@ -56,12 +81,11 @@ export default function Canvas() {
     ctxRef.current = canvas.getContext("2d");
     redrawAll();
     // eslint-disable-next-line
-  }, [scale, offset, strokes]);
+  }, [scale, offset, strokes, worldRect]);
 
   const redrawAll = () => {
     const ctx = ctxRef.current;
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
     for (const stroke of strokes) {
       if (stroke.points.length < 2) continue;
       ctx.strokeStyle = stroke.tool === "eraser" ? "#fff" : stroke.color;
@@ -77,6 +101,7 @@ export default function Canvas() {
     }
   };
 
+  // Онлайн отрисовка текущего штриха
   useEffect(() => {
     if (!drawing || currentStroke.length < 2) return;
     redrawAll();
@@ -94,6 +119,7 @@ export default function Canvas() {
     // eslint-disable-next-line
   }, [currentStroke, drawing, scale, offset]);
 
+  // Корректная обработка позиции мыши
   const getRelativeMouse = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
@@ -102,13 +128,12 @@ export default function Canvas() {
   };
 
   const handleMouseDown = (e) => {
-    // 1. Перемещение: средняя кнопка (e.button === 1) или пробел + ЛКМ
+    // Перемещение: средняя кнопка или пробел+ЛКМ
     if (e.button === 1 || (e.button === 0 && spacePressed)) {
       setIsPanning(true);
       setLastMousePos({ x: e.clientX, y: e.clientY });
       return;
     }
-    // 2. Рисование
     if (tool === "brush" || tool === "eraser") {
       setDrawing(true);
       const { mouseX, mouseY } = getRelativeMouse(e);
@@ -142,6 +167,7 @@ export default function Canvas() {
     if (drawing) {
       setDrawing(false);
       if (currentStroke.length > 1) {
+        expandWorldIfNeeded(currentStroke);
         setStrokes((prev) => [
           ...prev,
           {
@@ -191,6 +217,10 @@ export default function Canvas() {
 
   const clearCanvas = () => setStrokes([]);
 
+  // Размеры viewport
+  const viewportW = window.innerWidth - 10;
+  const viewportH = window.innerHeight - 10;
+
   return (
     <div
       style={{
@@ -203,6 +233,7 @@ export default function Canvas() {
         boxSizing: "border-box",
       }}
     >
+      {/* Toolbar и Minimap получают состояние через props */}
       <Toolbar
         tool={tool}
         setTool={setTool}
@@ -211,6 +242,16 @@ export default function Canvas() {
         lineWidth={lineWidth}
         setLineWidth={setLineWidth}
         onClear={clearCanvas}
+      />
+      <Minimap
+        strokes={strokes}
+        offset={offset}
+        scale={scale}
+        setOffset={setOffset}
+        worldRect={worldRect}
+        minimapSize={200}
+        viewportW={window.innerWidth - 10}
+        viewportH={window.innerHeight - 10}
       />
       <canvas
         ref={canvasRef}

@@ -25,24 +25,10 @@ export default function Toolbar({
   return (
     <>
       {/* Выдвижная панель */}
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: collapsed ? -221 : 0, // - ширина панели + 30px для кнопки
-          zIndex: 1100,
-          background: "#23232e",
-          borderRadius: "0px",
-          boxShadow: "0 6px 24px rgba(0,0,0,0.18)",
-          padding: "150px 18px",
-          minWidth: 190,
-          width: 190,
-          color: "#fff",
-          transition: "left 0.30s cubic-bezier(.7,.2,.19,.95)",
-          overflow: "visible",
-        }}
->
-      {/* Кнопка — всегда в правой части, даже если панель свернута */}
+      <div id="panel" className="panel panel--tool"
+        style={{ left: collapsed ? -273 : 0 }}>
+
+      {/* Кнопка — свернуть */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         title={collapsed ? "Показать панель инструментов" : "Свернуть панель инструментов"}
@@ -57,7 +43,6 @@ export default function Toolbar({
           border: "none",
           borderRadius: "0px",
           outline: "none",
-          boxShadow: "0 4px 12px rgba(0,0,0,.13)",
           fontSize: 10,
           cursor: "pointer",
           display: "flex",
@@ -69,9 +54,9 @@ export default function Toolbar({
       >
         {collapsed ? "▶" : "◀"}
       </button>
-        <h3 style={{ margin: "0 0 16px 0", fontWeight: 700, fontSize: 18 }}>
-          Инструменты
-        </h3>
+
+        <div className="info"> инструменты </div>
+
         <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
           {TOOLS.map((t) => (
             <button
@@ -125,7 +110,7 @@ export default function Toolbar({
           <input
             type="range"
             min={1}
-            max={32}
+            max={64}
             value={lineWidth}
             onChange={(e) => setLineWidth(Number(e.target.value))}
             style={{

@@ -1,0 +1,103 @@
+:root {
+    /* ======= Основная цветовая палитра ======= */
+  --accent-color: #c3b590;
+  --accent-color-light: #e7dbc0;
+  --accent-color-dark: #a18f63;
+  --danger-color: #dc3545;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+
+  --background-main: #1c2021;
+  --background-panel: #23232e;
+  --background-light: #f8f9fa;
+  --background-dark: #14130f;
+  --border-color: var(--accent-color);
+
+    /* ======= Основные шрифты и текст ======= */
+  --font-family-main: "Noto Sans", Arial, sans-serif;
+  --font-family-title: "Mantinia", "Montserrat", Arial, sans-serif;
+  --font-size-base: 15px;
+  --font-size-small: 13px;
+  --font-size-large: 18px;
+  --font-size-title: 20px;
+  --font-weight-bold: 700;
+  --font-weight-normal: 400;
+  --text-color: #e4e4e5;
+  --text-color-dark: #23232e;
+  --text-color-accent: var(--accent-color);
+  --title-font-letter-spacing: 1px;
+  --title-font-text-transform: uppercase;
+
+    /* ======= Панели (общие переменные) ======= */
+  --panel-radius: 0px;
+  --panel-shadow: 0 6px 24px rgba(0,0,0,0.18);
+  --panel-border: 2px solid var(--accent-color);
+  --panel-padding: 14px;
+  --panel-gap: 14px;
+  --panel-header-height: 36px;
+  --panel-header-bg: var(--background-panel);
+
+    /* ======= Панель инструментов (Toolbar) ======= */
+  --panel-tool-width: 250px;
+  --panel-tool-height: 710px;
+  --panel-tool-padding: 10px;
+  --panel-tool-transition: left 0.30s cubic-bezier(.7,.2,.19,.95);
+  --panel-tool-bg: var(--background-panel);
+  --panel-tool-header-bg: var(--panel-header-bg);
+  --panel-tool-header-color: var(--accent-color);
+  --panel-tool-header-size: var(--font-size-title);
+  --panel-tool-header-weight: var(--font-weight-bold);
+  --panel-tool-header-radius: 12px;
+  --panel-tool-border: var(--panel-border);
+  --panel-tool-shadow: var(--panel-shadow);
+
+    /* ======= Панель миникарты (Minimap) ======= */
+  --panel-minimap-width: 200px;
+  --panel-minimap-height: 220px;
+  --panel-minimap-padding: 5px;
+  --panel-minimap-radius: 14px;
+  --panel-minimap-shadow: var(--panel-shadow);
+  --panel-minimap-border: var(--panel-border);
+  --panel-minimap-bg: #fff;
+  --panel-minimap-title-bg: #f7f7f7;
+  --panel-minimap-transition: right 0.30s cubic-bezier(.7,.2,.19,.95);
+  --panel-minimap-title-color: var(--accent-color);
+  --panel-minimap-title-size: var(--font-size-small);
+  --panel-minimap-title-weight: var(--font-weight-bold);
+
+  /* ======= Кнопки (Button) ======= */
+  --btn-bg: var(--background-panel);
+  --btn-bg-hover: var(--accent-color);
+  --btn-color: var(--accent-color);
+  --btn-color-hover: var(--background-panel);
+  --btn-radius: 12px;
+  --btn-shadow: 0 2px 8px rgba(0,0,0,0.16);
+  --btn-border: 1.5px solid var(--accent-color);
+  --btn-font-family: var(--font-family-title);
+  --btn-font-size: var(--font-size-base);
+  --btn-font-weight: var(--font-weight-bold);
+  --btn-padding: 7px 12px;
+  --btn-transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+
+  /* ======= Кнопки-сворачивания (Collapse) ======= */
+  --panel-toggle-size: 40px;
+  --panel-toggle-bg: var(--background-panel);
+  --panel-toggle-bg-hover: var(--accent-color);
+  --panel-toggle-color: var(--accent-color);
+  --panel-toggle-color-hover: var(--background-panel);
+  --panel-toggle-radius: 13px;
+  --panel-toggle-shadow: 0 2px 8px rgba(0,0,0,.18);
+
+  /* ======= Тени, рамки, эффекты ======= */
+  --focus-shadow: 0 0 0 3px var(--accent-color-light);
+  --active-glow: 0 0 12px var(--accent-color);
+  --inactive-opacity: 0.6;
+
+  /* ======= Scrollbar ======= */
+  --scrollbar-thumb: var(--accent-color-dark);
+  --scrollbar-track: var(--background-panel);
+
+  /* ======= Размеры для мобильной версии ======= */
+  --panel-min-width-mobile: 96vw;
+  --panel-min-height-mobile: 60vw;
+}
