@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 // worldRect — {minX, minY, maxX, maxY}
 export default function Minimap({
@@ -35,7 +36,7 @@ export default function Minimap({
     // Все strokes (рисование)
     for (const stroke of strokes) {
       if (!stroke.points || stroke.points.length < 2) continue;
-      ctx.strokeStyle = stroke.tool === "eraser" ? "#bbb" : stroke.color;
+      ctx.strokeStyle = stroke.tool === "eraser" ? "#fff" : stroke.color;
       ctx.lineWidth = Math.max(1, stroke.lineWidth * kx);
       ctx.beginPath();
       let { x, y } = stroke.points[0];
@@ -105,6 +106,7 @@ export default function Minimap({
   };
 
   const handleMinimapUp = () => setDragging(false);
+  const { t } = useTranslation(); // Хук для переводов
 
   // Навешиваем drag-события на window для поддержки drag вне canvas
   useEffect(() => {
@@ -132,16 +134,17 @@ export default function Minimap({
 
     {/* Кнопка свернуть/развернуть */}
     <button
-      className="panel-toggle-btn"
+      id="panel-toggle-btn"
+      className="panel-toggle-btn panel--minimap-toggle-btn"
       onClick={() => setCollapsed(!collapsed)}
-      title={collapsed ? "Показать миникарту" : "Свернуть миникарту"}
+      title={collapsed ? t("SHOW_MINIMAP") : t("HIDE_MINIMAP")}
       style={{ left: -24 }}
     >
       {collapsed ? "◀" : "▶"}
     </button>
 
     {/* Шапка миникарты */}
-    <div className="info"> миникарта </div>
+    <div className="info">{t("MINIMAP")}</div>
     
     {/* Канвас миникарты */}
     <canvas

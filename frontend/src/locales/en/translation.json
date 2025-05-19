@@ -1,0 +1,13 @@
+{
+  "TOOLS": "TOOLS",
+  "BRUSH": "Brush",
+  "ERASER": "Eraser",
+  "COLOR": "Color",
+  "THICKNESS": "Thickness",
+  "CLEAR": "Clear Canvas",
+  "SHOW_TOOLBAR": "Show Toolbar",
+  "HIDE_TOOLBAR": "Hide Toolbar",
+  "MINIMAP": "MINIMAP",
+  "SHOW_MINIMAP": "Show Minimap",
+  "HIDE_MINIMAP": "Hide Minimap"
+}

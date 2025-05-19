@@ -39,28 +39,22 @@
 
     /* ======= Панель инструментов (Toolbar) ======= */
   --panel-tool-width: 300px;
-  --panel-tool-height: 728px;
+  --panel-tool-height: 100vh;
   --panel-tool-padding: 10px;
   --panel-tool-transition: left 0.30s cubic-bezier(.7,.2,.19,.95);
-  --panel-tool-bg: var(--background-panel);
+  /* ======= Не используется ======= */
   --panel-tool-header-bg: var(--panel-header-bg);
   --panel-tool-header-color: var(--accent-color);
   --panel-tool-header-size: var(--font-size-base);
   --panel-tool-header-weight: var(--font-weight-bold);
-  --panel-tool-header-radius: 0px;
-  --panel-tool-border: var(--panel-border);
-  --panel-tool-shadow: var(--panel-shadow);
 
     /* ======= Панель миникарты (Minimap) ======= */
   --panel-minimap-width: 200px;
   --panel-minimap-height: 220px;
   --panel-minimap-padding: 5px;
-  --panel-minimap-radius: 0px;
-  --panel-minimap-shadow: var(--panel-shadow);
-  --panel-minimap-border: var(--panel-border);
-  --panel-minimap-bg: #23232e;
-  --panel-minimap-title-bg: #f7f7f7;
   --panel-minimap-transition: right 0.30s cubic-bezier(.7,.2,.19,.95);
+  /* ======= Не используется ======= */
+  --panel-minimap-title-bg: #f7f7f7;
   --panel-minimap-title-color: var(--accent-color);
   --panel-minimap-title-size: var(--font-size-small);
   --panel-minimap-title-weight: var(--font-weight-bold);
@@ -87,6 +81,15 @@
   --panel-toggle-color-hover: var(--background-panel);
   --panel-toggle-radius: 0px;
   --panel-toggle-shadow: 0 2px 8px rgba(0,0,0,.18);
+
+    /* ======= LanguageSwitcher (select) ======= */
+  --langswitcher-radius: 0px;
+  --langswitcher-border: 2px solid var(--accent-color);
+  --langswitcher-bg: var(--background-panel);
+  --langswitcher-color: var(--accent-color);
+  --langswitcher-padding: 0px;
+  --langswitcher-shadow: 0 2px 4px #0001;
+  --langswitcher-font-size: 16px;
 
   /* ======= Тени, рамки, эффекты ======= */
   --focus-shadow: 0 0 0 3px var(--accent-color-light);

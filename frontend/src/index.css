@@ -13,10 +13,17 @@ html, body, #root {
   background: var(--background-main, #1c2021);
   color: var(--text-color);
 }
+*, ::after, ::before { box-sizing: inherit; }
 
-/* Сброс box-sizing для всех элементов */
-*, ::after, ::before {
-  box-sizing: inherit;
+/* ==================== Контейнер холста ==================== */
+.canvas-bg {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background: var(--background-panel);
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* ==================== Общие стили для панелей ==================== */
@@ -41,10 +48,6 @@ html, body, #root {
   min-width: var(--panel-minimap-width, 200px);
   min-height: var(--panel-minimap-height, 220px);
   padding: var(--panel-minimap-padding, 5px);
-  border-radius: var(--panel-minimap-radius, 0px);
-  box-shadow: var(--panel-minimap-shadow);
-  border: var(--panel-minimap-border, none);
-  background: var(--panel-minimap-bg, #23232e);
   transition: var(--panel-minimap-transition, right 0.30s cubic-bezier(.7,.2,.19,.95));
 }
 
@@ -54,16 +57,17 @@ html, body, #root {
   width: var(--panel-tool-width, 250px);
   height: var(--panel-tool-height, 710px);
   padding: var(--panel-tool-padding, 10px);
-  border-radius: var(--panel-tool-header-radius, 0px);
-  box-shadow: var(--panel-tool-shadow);
-  border: var(--panel-tool-border, none);
-  background: var(--panel-tool-bg, #23232e);
   transition: var(--panel-tool-transition, left 0.30s cubic-bezier(.7,.2,.19,.95));
 }
 
-/* ==================== Текстовые стили ==================== */
+/* Панель "толщина" */
+.thickness {
+  accent-color: var(--accent-color, #c3b590);
+  width: 100%;
+  margin-top: 4px;
+}
 
-/* Общий стиль для заголовков/информационных блоков внутри панелей */
+/* ==================== Текстовые стили ==================== */
 .panel .info {
   -webkit-font-smoothing: antialiased;
   text-align: center;
@@ -75,12 +79,12 @@ html, body, #root {
   text-transform: var(--title-font-text-transform, uppercase);
 }
 
-/* ==================== Кнопки (универсальные, не только тулбар) ==================== */
+/* ==================== Кнопки ==================== */
 .btn {
   background: var(--btn-bg);
   color: var(--btn-color);
   border: var(--btn-border);
-  border-radius: var(--btn-radius, 8px);
+  border-radius: var(--btn-radius, 12px);
   font-family: var(--btn-font-family);
   font-size: var(--btn-font-size);
   font-weight: var(--btn-font-weight);
@@ -94,20 +98,18 @@ html, body, #root {
   justify-content: center;
   user-select: none;
 }
-
-.btn:hover,
-.btn:focus {
+.btn:hover {
   background: var(--btn-bg-hover);
   color: var(--btn-color-hover);
   box-shadow: 0 2px 16px var(--accent-color, #c3b59030);
 }
 
-/* ==================== Кнопки для инструментов панели ==================== */
+/* ==================== Кнопки для панели инструментов ==================== */
 .tool-btn {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  border: 1.5px solid #333;
+  border: 1.5px solid var(--btn-color);
   background: #24242f;
   color: #fff;
   font-size: 22px;
@@ -120,10 +122,14 @@ html, body, #root {
   transition: all .18s;
 }
 
+.tool-btn:hover {
+  background: var(--panel-toggle-bg-hover, var(--accent-color));
+  color: var(--panel-toggle-color-hover, var(--background-panel));
+}
+
 .tool-btn--active {
-  border: 2.5px solid #81aaff;
-  background: #2e436b;
-  box-shadow: 0 2px 8px #81aaff44;
+  border: 2.5px solid var(--btn-color);
+  background: #223456;
 }
 
 /* ==================== Кнопка свернуть/развернуть панель (collapse) ==================== */
@@ -145,22 +151,48 @@ html, body, #root {
   z-index: 1100;
   transition: background 0.16s, color 0.16s;
   outline: none;
-  border-right: 2px solid var(--accent-color);
 }
 
+.panel--tool-toggle-btn { border-left: 2px solid var(--accent-color); }
+.panel--minimap-toggle-btn { border-right: 2px solid var(--accent-color); }
 .panel-toggle-btn:hover {
   background: var(--panel-toggle-bg-hover, var(--accent-color));
   color: var(--panel-toggle-color-hover, var(--background-panel));
 }
 
+/* ==================== Панель смены языка ==================== */
+.language-switcher-panel {
+  position: fixed;
+  top: 3px;
+  right: 3px;
+  z-index: 11000;
+  background: var(--background-panel);
+  border-radius: none;
+  box-shadow: 0 2px 12px #0003;
+  padding: 2px;
+}
+.language-switcher {
+  font-size: var(--langswitcher-font-size);
+  border-radius: var(--langswitcher-radius);
+  border: var(--langswitcher-border);
+  background: var(--langswitcher-bg);
+  color: var(--langswitcher-color);
+  outline: none;
+  padding: var(--langswitcher-padding);
+  box-shadow: var(--langswitcher-shadow);
+  transition: border 0.13s, box-shadow 0.13s;
+}
+.language-switcher:hover {
+  border-color: var(--accent-color-light);
+  box-shadow: 0 2px 16px var(--accent-color, #c3b59030);
+}
+
 /* ==================== Стиль для input[type=color] ==================== */
 input[type="color"] {
   border: none;
-  border-radius: 4px;
   width: 36px;
   height: 26px;
   background: none;
-  outline: none;
   cursor: pointer;
 }
 
@@ -182,6 +214,7 @@ input[type="color"] {
 .inactive {
   opacity: var(--inactive-opacity, 0.6);
 }
+
 
 /* ==================== Медиазапросы для мобильной версии (пример) ==================== */
 @media (max-width: 768px) {

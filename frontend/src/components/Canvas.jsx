@@ -22,6 +22,9 @@ export default function Canvas({
 
   const [spacePressed, setSpacePressed] = useState(false);
 
+  // Для кастомного курсора ластика
+  const [eraserCursorPos, setEraserCursorPos] = useState(null);
+
   // Глобальные слушатели для пробела (перемещение)
   useEffect(() => {
     const downHandler = (e) => {
@@ -70,7 +73,6 @@ export default function Canvas({
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-    // eslint-disable-next-line
   }, [scale, offset, strokes, worldRect]);
 
   // Инициализация и перерисовка
@@ -80,8 +82,11 @@ export default function Canvas({
     canvas.height = window.innerHeight - 10;
     ctxRef.current = canvas.getContext("2d");
     redrawAll();
-    // eslint-disable-next-line
-  }, [scale, offset, strokes, worldRect]);
+    // После отрисовки strokes сразу рисуем курсор-ластик, если надо
+    if (tool === "eraser" && eraserCursorPos) {
+      drawEraserCursor(ctxRef.current, eraserCursorPos, (lineWidth * scale) / 2);
+    }
+  }, [scale, offset, strokes, worldRect, tool, eraserCursorPos, lineWidth]);
 
   const redrawAll = () => {
     const ctx = ctxRef.current;
@@ -116,8 +121,46 @@ export default function Canvas({
       ctx.lineTo(p.x, p.y);
     }
     ctx.stroke();
-    // eslint-disable-next-line
-  }, [currentStroke, drawing, scale, offset]);
+    // После дорисовки снова показать ластик
+    if (tool === "eraser" && eraserCursorPos) {
+      drawEraserCursor(ctx, eraserCursorPos, (lineWidth * scale) / 2);
+    }
+  }, [currentStroke, drawing, scale, offset, tool, color, lineWidth, eraserCursorPos]);
+
+  // Функция отрисовки кастомного ластика (виден всегда!)
+  function drawEraserCursor(ctx, pos, radius) {
+    // Внутренняя полупрозрачная тень
+    ctx.save();
+    ctx.globalAlpha = 0.16;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#23232e";
+    ctx.fill();
+    ctx.restore();
+
+    // Золотая наружная обводка (акцент)
+    ctx.save();
+    ctx.globalAlpha = 0.96;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = "var(--accent-color, #c3b590)";
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "#fff";
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.restore();
+
+    // Внутренний контур (чёрный)
+    ctx.save();
+    ctx.globalAlpha = 1.0;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, Math.max(2, radius - 2), 0, Math.PI * 2);
+    ctx.strokeStyle = "#23232e";
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 0;
+    ctx.stroke();
+    ctx.restore();
+  }
 
   // Корректная обработка позиции мыши
   const getRelativeMouse = (e) => {
@@ -143,6 +186,14 @@ export default function Canvas({
   };
 
   const handleMouseMove = (e) => {
+    // Для кастомного курсора ластика — всегда обновлять позицию!
+    if (tool === "eraser") {
+      const { mouseX, mouseY } = getRelativeMouse(e);
+      setEraserCursorPos({ x: mouseX, y: mouseY });
+    } else {
+      setEraserCursorPos(null);
+    }
+
     if (isPanning) {
       if (lastMousePos) {
         const dx = e.clientX - lastMousePos.x;
@@ -250,8 +301,8 @@ export default function Canvas({
         setOffset={setOffset}
         worldRect={worldRect}
         minimapSize={200}
-        viewportW={window.innerWidth - 10}
-        viewportH={window.innerHeight - 10}
+        viewportW={viewportW}
+        viewportH={viewportH}
       />
       <canvas
         ref={canvasRef}
@@ -269,7 +320,7 @@ export default function Canvas({
             isPanning || spacePressed
               ? "grab"
               : tool === "eraser"
-              ? "not-allowed"
+              ? "none"
               : "crosshair",
         }}
         onMouseDown={handleMouseDown}

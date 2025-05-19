@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from './components/Login';
 import Register from './components/Register';
 import Canvas from './components/Canvas';
+import LanguageSwitcher from "./components/LanguageSwitcher";
 
 export default function App() {
   // Глобальные состояния "мира"
@@ -34,6 +35,7 @@ export default function App() {
 
   return (
     <Router>
+      <LanguageSwitcher />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
