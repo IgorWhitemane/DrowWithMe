@@ -26,7 +26,7 @@ export default function Toolbar({
     <>
       {/* Выдвижная панель */}
       <div id="panel" className="panel panel--tool"
-        style={{ left: collapsed ? -273 : 0 }}>
+        style={{ left: collapsed ? -240 : 0 }}>
 
       {/* Кнопка — свернуть */}
       <button

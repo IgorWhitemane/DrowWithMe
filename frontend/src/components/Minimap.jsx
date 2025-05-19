@@ -12,30 +12,27 @@ export default function Minimap({
   viewportH,
 }) {
   const canvasRef = useRef(null);
-
-  // Параметры для drag
   const [dragging, setDragging] = useState(false);
-  // Сдвиг панели вниз/вверх
   const [collapsed, setCollapsed] = useState(false);
 
 
-  // Границы мира
+  // Вычисляем масштаб миникарты относительно мира
   const worldW = worldRect.maxX - worldRect.minX || 1;
   const worldH = worldRect.maxY - worldRect.minY || 1;
   const kx = minimapSize / worldW;
   const ky = minimapSize / worldH;
 
 
-  // --- Рисуем миникарту ---
+  // Рисуем миникарту (строки + viewport)
   useEffect(() => {
     const ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, minimapSize, minimapSize);
 
-    // фон
+    // Белый фон миникарты (можно взять цвет из переменной, если будет нужно)
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, minimapSize, minimapSize);
 
-    // линии
+    // Все strokes (рисование)
     for (const stroke of strokes) {
       if (!stroke.points || stroke.points.length < 2) continue;
       ctx.strokeStyle = stroke.tool === "eraser" ? "#bbb" : stroke.color;
@@ -50,12 +47,13 @@ export default function Minimap({
       ctx.stroke();
     }
 
+    // Выделяем область viewport
     const viewWorldX = -offset.x / scale;
     const viewWorldY = -offset.y / scale;
     const viewWorldW = viewportW / scale;
     const viewWorldH = viewportH / scale;
 
-    // прямоугольник viewport
+    // Затемнение/заливка области просмотра (эффект "стекла")
     ctx.save();
     ctx.globalAlpha = 0.17;
     ctx.fillStyle = "#000";
@@ -67,6 +65,7 @@ export default function Minimap({
     );
     ctx.restore();
 
+    // Чёрная рамка viewport
     ctx.save();
     ctx.globalAlpha = 0.7;
     ctx.strokeStyle = "#23232e";
@@ -81,13 +80,13 @@ export default function Minimap({
 
   }, [strokes, offset, scale, worldRect, minimapSize, viewportW, viewportH, kx, ky]);
 
-  // --- Drag навигация ---
-  // Клик или drag на миникарте = переместить viewport
+  // Преобразование координат миникарты в координаты мира
   const minimapToWorld = (mx, my) => ({
     x: (mx / minimapSize) * (worldRect.maxX - worldRect.minX) + worldRect.minX,
     y: (my / minimapSize) * (worldRect.maxY - worldRect.minY) + worldRect.minY,
   });
 
+  // Drag навигация
   const handleMinimapDown = (e) => {
     setDragging(true);
     handleMinimapMove(e);
@@ -99,82 +98,66 @@ export default function Minimap({
     const mouseX = Math.max(0, Math.min(e.clientX - rect.left, minimapSize));
     const mouseY = Math.max(0, Math.min(e.clientY - rect.top, minimapSize));
     const { x, y } = minimapToWorld(mouseX, mouseY);
-
     setOffset({
       x: -(x * scale - viewportW / 2),
       y: -(y * scale - viewportH / 2),
     });
   };
 
-  const handleMinimapUp = () => {
-    setDragging(false);
-  };
+  const handleMinimapUp = () => setDragging(false);
 
-  // Навешиваем и снимаем drag события
+  // Навешиваем drag-события на window для поддержки drag вне canvas
   useEffect(() => {
     if (!dragging) return;
     const handleMove = (e) => handleMinimapMove(e);
     const handleUp = () => handleMinimapUp();
     window.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseup", handleUp);
+    window.addEventListener("touchmove", handleMove);
+    window.addEventListener("touchend", handleUp);
     return () => {
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
     };
     // eslint-disable-next-line
   }, [dragging]);
 
-  // --- Стилизованный контейнер как у Toolbar ---
   return (
-    <>
-      {/* Выдвижная карта */}
-      <div id="panel" className="panel panel--minimap" 
-        style={{ right: collapsed ? -213 : 0 }}>
+    // {/* Выдвижная карта */}
+  <div id="panel" className="panel panel--minimap" 
+    style={{ right: collapsed ? -213 : 0 }}
+  >
 
-      {/* Кнопка свернуть/развернуть */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        title={collapsed ? "Показать миникарту" : "Свернуть миникарту"}
-        style={{
-          position: "absolute",
-          top: 10,
-          left: -24, // чуть выдвигаем вправо за пределы панели
-          width: 24,
-          height: 46,
-          background: "#23232e",
-          color: "#fff",
-          border: "none",
-          borderRadius: "0px",
-          outline: "none",
-          fontSize: 10,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1100,
-          transition: "background 0.16s",
-        }}
-      >
-        {collapsed ? "◀" : "▶"}
-      </button>
-      
-      <div className="info"> миникарта </div>
+    {/* Кнопка свернуть/развернуть */}
+    <button
+      className="panel-toggle-btn"
+      onClick={() => setCollapsed(!collapsed)}
+      title={collapsed ? "Показать миникарту" : "Свернуть миникарту"}
+      style={{ left: -24 }}
+    >
+      {collapsed ? "◀" : "▶"}
+    </button>
 
-      <canvas
-        ref={canvasRef}
-        width={minimapSize}
-        height={minimapSize}
-        style={{
-          display: "block",
-          width: minimapSize,
-          height: minimapSize,
-          borderRadius: "0px",
-          cursor: dragging ? "grabbing" : "grab",
-        }}
-        onMouseDown={handleMinimapDown}
-        onTouchStart={handleMinimapDown}
-      />
-    </div>
-    </>
+    {/* Шапка миникарты */}
+    <div className="info"> миникарта </div>
+    
+    {/* Канвас миникарты */}
+    <canvas
+      ref={canvasRef}
+      width={minimapSize}
+      height={minimapSize}
+      style={{
+        display: "block",
+        width: minimapSize,
+        height: minimapSize,
+        borderRadius: "0px",
+        cursor: dragging ? "grabbing" : "grab",
+      }}
+      onMouseDown={handleMinimapDown}
+      onTouchStart={handleMinimapDown}
+    />
+  </div>
   );
 }

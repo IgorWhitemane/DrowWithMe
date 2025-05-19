@@ -1,5 +1,7 @@
 @import './styles/variables.css';
 
+
+/* ==================== Глобальные сбросы и базовые стили ==================== */
 html, body, #root {
   width: 100vw;
   height: 100vh;
@@ -7,40 +9,199 @@ html, body, #root {
   padding: 0;
   box-sizing: border-box;
   overflow: hidden;
+  font-family: var(--font-family-main), Arial, sans-serif;
+  background: var(--background-main, #1c2021);
+  color: var(--text-color);
 }
 
-/* Панели */
+/* Сброс box-sizing для всех элементов */
+*, ::after, ::before {
+  box-sizing: inherit;
+}
+
+/* ==================== Общие стили для панелей ==================== */
 .panel {
   position: fixed;
   z-index: 1100;
   background: var(--background-panel, #23232e);
   border: var(--panel-border, none);
   border-radius: var(--panel-radius, 0px);
+  box-shadow: var(--panel-shadow);
+  padding: var(--panel-padding, 5px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap, 4px);
 }
 
+/* ==================== Модификаторы панелей ==================== */
+
+/* Панель миникарты */
 .panel--minimap { 
   bottom: 0;
   min-width: var(--panel-minimap-width, 200px);
   min-height: var(--panel-minimap-height, 220px);
   padding: var(--panel-minimap-padding, 5px);
+  border-radius: var(--panel-minimap-radius, 0px);
+  box-shadow: var(--panel-minimap-shadow);
+  border: var(--panel-minimap-border, none);
+  background: var(--panel-minimap-bg, #23232e);
   transition: var(--panel-minimap-transition, right 0.30s cubic-bezier(.7,.2,.19,.95));
 }
 
+/* Панель инструментов */
 .panel--tool {
   top: 0;
   width: var(--panel-tool-width, 250px);
-  height: var(--panel-tool-height, 705px);
+  height: var(--panel-tool-height, 710px);
   padding: var(--panel-tool-padding, 10px);
+  border-radius: var(--panel-tool-header-radius, 0px);
+  box-shadow: var(--panel-tool-shadow);
+  border: var(--panel-tool-border, none);
+  background: var(--panel-tool-bg, #23232e);
   transition: var(--panel-tool-transition, left 0.30s cubic-bezier(.7,.2,.19,.95));
-  color: var(--text-color);
 }
 
+/* ==================== Текстовые стили ==================== */
+
+/* Общий стиль для заголовков/информационных блоков внутри панелей */
 .panel .info {
-  -webkit-font-smoothing: var(--title-font-smoothing, inherit); 
+  -webkit-font-smoothing: antialiased;
   text-align: center;
-  color: var(--accent-color);
-  font-family: var(--font-family-main), sans-serif;
-  font-size: var(--font-size-base, 17px);
-  letter-spacing: var(--title-font-letter-spacing, inherit);
+  color: var(--panel-tool-header-color, var(--accent-color));
+  font-family: var(--font-family-title), serif;
+  font-size: var(--panel-tool-header-size, 15px);
+  font-weight: var(--panel-tool-header-weight, 700);
+  letter-spacing: var(--title-font-letter-spacing, 1px);
   text-transform: var(--title-font-text-transform, uppercase);
+}
+
+/* ==================== Кнопки (универсальные, не только тулбар) ==================== */
+.btn {
+  background: var(--btn-bg);
+  color: var(--btn-color);
+  border: var(--btn-border);
+  border-radius: var(--btn-radius, 8px);
+  font-family: var(--btn-font-family);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  padding: var(--btn-padding);
+  box-shadow: var(--btn-shadow);
+  cursor: pointer;
+  transition: var(--btn-transition);
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.btn:hover,
+.btn:focus {
+  background: var(--btn-bg-hover);
+  color: var(--btn-color-hover);
+  box-shadow: 0 2px 16px var(--accent-color, #c3b59030);
+}
+
+/* ==================== Кнопки для инструментов панели ==================== */
+.tool-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid #333;
+  background: #24242f;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .18s;
+}
+
+.tool-btn--active {
+  border: 2.5px solid #81aaff;
+  background: #2e436b;
+  box-shadow: 0 2px 8px #81aaff44;
+}
+
+/* ==================== Кнопка свернуть/развернуть панель (collapse) ==================== */
+.panel-toggle-btn {
+  position: absolute;
+  top: 10px;
+  width: var(--panel-toggle-size, 24px);
+  height: 46px;
+  background: var(--panel-toggle-bg, #23232e);
+  color: var(--panel-toggle-color, var(--accent-color));
+  border: none;
+  border-radius: var(--panel-toggle-radius, 0px);
+  box-shadow: var(--panel-toggle-shadow);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  transition: background 0.16s, color 0.16s;
+  outline: none;
+  border-right: 2px solid var(--accent-color);
+}
+
+.panel-toggle-btn:hover {
+  background: var(--panel-toggle-bg-hover, var(--accent-color));
+  color: var(--panel-toggle-color-hover, var(--background-panel));
+}
+
+/* ==================== Стиль для input[type=color] ==================== */
+input[type="color"] {
+  border: none;
+  border-radius: 4px;
+  width: 36px;
+  height: 26px;
+  background: none;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ==================== Скроллбар для панели (кастомный) ==================== */
+.panel::-webkit-scrollbar {
+  width: 8px;
+}
+.panel::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #a18f63);
+  border-radius: 8px;
+}
+.panel::-webkit-scrollbar-track {
+  background: var(--scrollbar-track, #23232e);
+  border-radius: 8px;
+}
+
+/* ==================== Дополнительные утилиты и эффекты ==================== */
+/* Для неактивных элементов */
+.inactive {
+  opacity: var(--inactive-opacity, 0.6);
+}
+
+/* ==================== Медиазапросы для мобильной версии (пример) ==================== */
+@media (max-width: 768px) {
+  .panel {
+    min-width: var(--panel-min-width-mobile, 96vw);
+    min-height: var(--panel-min-height-mobile, 60vw);
+    border-radius: 10px;
+    padding: 6vw 3vw;
+  }
+  .panel--tool {
+    width: 90vw;
+    left: 0;
+    right: 0;
+    height: 55vw;
+  }
+  .panel--minimap {
+    min-width: 38vw;
+    min-height: 38vw;
+    bottom: 1vw;
+    right: 1vw;
+    border-radius: 10px;
+  }
 }
