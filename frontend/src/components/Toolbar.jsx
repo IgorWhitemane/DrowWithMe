@@ -6,7 +6,7 @@ import { useState } from "react";
 const TOOLS = [
   { key: "brush", icon: "🖌️", label: "Кисть" },
   { key: "eraser", icon: "🧽", label: "Ластик" },
-  { key: "marker", icon: "📍", label: "Маркер" },
+  // { key: "marker", icon: "📍", label: "Маркер" },
   // { key: "select", icon: "🔲", label: "Выделить" },
   // { key: "hand", icon: "🤚", label: "Рука" },
 ];
