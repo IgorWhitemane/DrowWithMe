@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from './components/Login';
-import Register from './components/Register';
 import Canvas from './components/Canvas';
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import Start from './components/Start';
 
 export default function App() {
   // Глобальные состояния "мира"
@@ -33,12 +32,14 @@ export default function App() {
     // eslint-disable-next-line
   }, []);
 
-  return (
+return (
     <Router>
       <LanguageSwitcher />
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Start />} />
+        <Route path="/about" element={<Start showAboutOverlay={true} />} />
+        <Route path="/login" element={<Start showLoginOverlay={true} />} />
+        <Route path="/register" element={<Start showRegisterOverlay={true} />} />
         <Route
           path="/canvas"
           element={
@@ -60,7 +61,6 @@ export default function App() {
             />
           }
         />
-        <Route path="/" element={<Login />} />
       </Routes>
     </Router>
   );

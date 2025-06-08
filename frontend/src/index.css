@@ -97,6 +97,7 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   user-select: none;
+  text-decoration: none;
 }
 .btn:hover {
   background: var(--btn-bg-hover);
@@ -164,7 +165,7 @@ html, body, #root {
 .language-switcher-panel {
   position: fixed;
   top: 3px;
-  right: 3px;
+  right: 18px;
   z-index: 11000;
   background: var(--background-panel);
   border-radius: none;
@@ -237,4 +238,87 @@ input[type="color"] {
     right: 1vw;
     border-radius: 10px;
   }
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.modal-panel {
+  position: fixed;
+  top: 240px; /* 🎯 чуть ниже центральной панели */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  background: var(--background-panel);
+  border: var(--panel-border);
+  border-radius: 6px;
+  box-shadow: var(--panel-shadow);
+  padding: 24px;
+  min-width: 340px;
+}
+
+/* ==================== Центральная панель на стартовой странице ==================== */
+.panel--hero {
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+
+  width: 95%;
+  max-width: none;
+  padding: 24px 10px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  text-align: center;
+  background: var(--background-panel);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--panel-shadow);
+}
+
+.about-overlay {
+  position: fixed;
+  top: 240px; /* 🎯 чуть ниже центральной панели */
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 95%;
+  max-width: none;
+  padding: 24px 10px;
+  height: auto;
+
+  z-index: 2000;
+  background: var(--background-panel);
+  border: var(--panel-border);
+  border-radius: 0px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  padding: 32px 24px;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+
+.about-content {
+  width: 100%;
+  max-width: auto;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--text-color);
+  text-align: center;
 }
