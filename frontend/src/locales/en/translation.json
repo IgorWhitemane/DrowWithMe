@@ -28,5 +28,18 @@
   "AUTHOR_NAME": "Igor Belogrivtsev",
   "AUTHOR_TELEGRAM": "@IgorWhitemane",
   "AUTHOR_GITHUB": "https://github.com/IgorWhitemane",
-  "AUTHOR_LINKEDIN": "https://www.linkedin.com/in/igor-belogrivtsev/"
+  "AUTHOR_LINKEDIN": "https://www.linkedin.com/in/igor-belogrivtsev/",
+  "RECTANGLE": "Rectangle",
+  "CIRCLE": "Circle",
+  "LINE": "Line",
+  "RULER": "Ruler",
+  "FIGURES": "Figures",
+  "SQUARE": "Square",
+  "ARROW": "Arrow",
+  "RHOMBUS": "Rhombus",
+  "TRIANGLE": "Triangle",
+  "HEXAGON": "Hexagon",
+  "STAR": "Star",
+  "ONLINE_USERS": "Online users",
+  "NO_USERS": "No other users"
 }

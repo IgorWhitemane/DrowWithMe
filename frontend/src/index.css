@@ -322,3 +322,169 @@ input[type="color"] {
   color: var(--text-color);
   text-align: center;
 }
+
+/* === Дропдаун с фигурами === */
+.figure-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.figure-dropdown-menu {
+  position: absolute;
+  left: 0;
+  top: 46px;
+  min-width: 158px;
+  background: var(--background-panel);
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+  border-radius: 10px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  animation: fadeInUp .18s;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+.figure-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 7px 16px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background .13s, color .13s;
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.figure-btn:hover, .figure-btn--active {
+  background: var(--accent-color);
+  color: var(--background-panel);
+}
+
+.figure-btn--active {
+  font-weight: bold;
+}
+
+.tool-btn--active {
+  border: 2.5px solid var(--btn-color);
+  background: #223456;
+}
+
+.tool-btn[aria-haspopup="menu"] {
+  position: relative;
+}
+
+/* === Современный счетчик пользователей === */
+.user-panel--hero-container {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.user-counter-title {
+  text-align: center;
+  color: var(--accent-color);
+  font-family: var(--font-family-title);
+  font-size: 14px;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.user-counter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 2px;
+  transition: background .12s;
+  outline: none;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-color);
+  color: var(--background-panel);
+  border-radius: 24px;
+  min-width: 48px;
+  padding: 3px 14px 3px 8px;
+  font-size: 18px;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.user-badge-count {
+  font-weight: bold;
+  font-size: 17px;
+  margin-left: 2px;
+}
+
+.user-counter-arrow {
+  margin-left: 12px;
+  font-size: 16px;
+  color: var(--accent-color);
+}
+
+.user-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  animation: fadeInUp .18s;
+}
+
+.user-list-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--background-panel);
+  border: 1.5px solid var(--accent-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  font-size: 15px;
+  color: var(--text-color);
+  transition: background .13s, box-shadow .13s, color .13s;
+}
+
+.user-list-card:hover {
+  background: var(--accent-color-light);
+  color: var(--background-dark);
+  box-shadow: 0 2px 18px var(--accent-color-dark);
+}
+
+.user-list-empty {
+  opacity: 0.8;
+  font-style: italic;
+  justify-content: center;
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent-color-light);
+  color: var(--background-panel);
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-name {
+  flex: 1 1 auto;
+  font-size: 15px;
+}
